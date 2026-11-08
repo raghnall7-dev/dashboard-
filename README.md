@@ -14,8 +14,11 @@ A beginner-friendly money app that runs in the browser. Buyers enter their pay, 
 | **Setup** | 4 quick questions: name, pay, bills, first goal. Ends with "You can safely spend £X a week". |
 | **Home** | Safe-to-spend this week, a top Coach tip, this week's chart, the month split (needs / treats / savings), coming-up bills and paydays, goals, recent spending. |
 | **Add (+)** | Amount, a category, done. Money in and money out. Today / yesterday / pick a date. |
-| **Spending** | Month by month: total, per-day average, where it went, every entry (tap one to edit or delete). |
-| **Goals** | Progress bars, "on track" or "running late" (with the monthly amount that fixes it), add or take out money. |
+| **Spending → Month** | Total, per-day average, where it went, every entry (tap one to edit or delete). Tap a category to give it a monthly **limit**: bars then show spent vs limit, and the Coach warns when you're close. |
+| **Spending → Calendar** | Month grid with paydays 💰, bills and each day's spending (days over the daily budget are marked ↑). Tap a day to see it or add to it. |
+| **Spending → Year** | Spending per month against the plan, month-by-month table (spent, saved, under/over plan), best month, top categories. |
+| **Goals → Savings** | Progress bars, "on track" or "running late" (with the monthly amount that fixes it), add or take out money. |
+| **Goals → Debts** | Each debt's balance, interest and minimum. A month-by-month payoff plan gives a debt-free date, a "clear by" date per debt, a choice of highest-interest-first or smallest-first, and shows what paying extra saves. Flags debts where the minimum doesn't cover the interest. |
 | **Coach** | "Your money, explained" in plain words, the top 3 next steps, a 50/30/20 check, all tips. |
 | **Settings** | Name, pay, bills, your own categories, look, currency, backup / restore, example data, delete everything. |
 

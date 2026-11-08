@@ -1,5 +1,5 @@
 // Offline support for the hosted version. Bump VERSION when you publish changes.
-const VERSION = 'simple-money-v1';
+const VERSION = 'simple-money-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
