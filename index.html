@@ -1163,6 +1163,13 @@ function closeSheet() {
   if (lastFocus && lastFocus.focus) try { lastFocus.focus({ preventScroll: true }); } catch (e) { /* ignore */ }
 }
 const sheetHead = (title) => `<div class="sheet-head"><h2 style="font-size:1.25rem">${title}</h2><button class="icon-btn" data-act="close-sheet" aria-label="Close">${icon('x')}</button></div>`;
+// In-app "are you sure?" step (some places block the browser's own pop-up boxes).
+let confirmAction = null;
+function askConfirm(title, body, okLabel, onOk, danger = true) {
+  confirmAction = onOk; UI.sheet = { kind: 'confirm' };
+  const html = `${sheetHead(title)}<div class="form"><p class="ink2">${body}</p><button class="btn ${danger ? 'danger' : ''} block" data-act="confirm-ok">${okLabel}</button><button class="btn ghost block" data-act="close-sheet">Cancel</button></div>`;
+  if (!sheetRoot.hidden && sheetRoot.classList.contains('open')) { $('.sheet', sheetRoot).innerHTML = html; } else openSheet(html);
+}
 
 function openAdd(tx) {
   const editing = !!tx;
@@ -1412,7 +1419,8 @@ document.addEventListener('click', (e) => {
     case 'goal-suggest': $('#g-name').value = v; UI.sheet.emoji = el.dataset.e; press('[data-act="goal-emoji"]', el.dataset.e); break;
     case 'goal-emoji': UI.sheet.emoji = v; press('[data-act="goal-emoji"]', v); break;
     case 'goal-save': saveGoal(); break;
-    case 'goal-delete': if (confirm('Delete this goal?')) { S.goals = S.goals.filter((x) => x.id !== UI.sheet.id); save(); closeSheet(); render(); toast('Goal deleted'); } break;
+    case 'goal-delete': { const gid = UI.sheet.id; askConfirm('Delete this goal?', 'The goal and the money tracked in it will be removed.', 'Delete goal', () => { S.goals = S.goals.filter((x) => x.id !== gid); save(); render(); toast('Goal deleted'); }); break; }
+    case 'confirm-ok': { const f = confirmAction; confirmAction = null; closeSheet(); if (f) f(); break; }
     case 'goal-add': openGoalAdd(S.goals.find((x) => x.id === id)); break;
     case 'ga-quick': { const a = $('#ga-amount'); a.value = (num(a.value) + Number(v)).toFixed(2).replace(/\.00$/, ''); break; }
     case 'ga-save': goalMove(1); break;
@@ -1431,7 +1439,7 @@ document.addEventListener('click', (e) => {
     case 'c-emoji': UI.sheet.emoji = v; press('[data-act="c-emoji"]', v); break;
     case 'c-kind': UI.sheet.kindOf = v; press('[data-act="c-kind"]', v); break;
     case 'c-save': { const name = $('#c-name').value.trim(); if (!name) { $('#c-err').textContent = 'Give it a name.'; break; } S.customCats.push({ id: 'c_' + uid(), name, emoji: UI.sheet.emoji, kind: UI.sheet.kindOf }); save(); closeSheet(); render(); toast(`${UI.sheet.emoji} ${name} added`); break; }
-    case 'cat-del': { const c = S.customCats.find((x) => x.id === id); if (c && confirm(`Remove "${c.name}"? Spending in it will show as Other.`)) { S.customCats = S.customCats.filter((x) => x.id !== id); save(); render(); } break; }
+    case 'cat-del': { const c = S.customCats.find((x) => x.id === id); if (c) askConfirm(`Remove ${esc(c.emoji)} ${esc(c.name)}?`, 'Anything you added to it will show as Other.', 'Remove', () => { S.customCats = S.customCats.filter((x) => x.id !== id); save(); render(); toast('Category removed'); }); break; }
     // look
     case 'theme': S.settings.theme = v; save(); render(); break;
     case 'accent': S.settings.accent = v; save(); render(); break;
@@ -1439,13 +1447,16 @@ document.addEventListener('click', (e) => {
     case 'export': exportData(); break;
     case 'import': $('#importFile').click(); break;
     case 'demo': {
-      if (S.setupDone && !S.demo && !confirm('Load example data? This replaces what you have now. (Download a backup first if you want to keep it.)')) break;
-      S = demoState(); save(); UI.tab = 'home'; UI.ob = null; render(); window.scrollTo(0, 0); toast('Example data loaded 👀'); break;
+      const load = () => { S = demoState(); save(); UI.tab = 'home'; UI.ob = null; render(); window.scrollTo(0, 0); toast('Example data loaded 👀'); };
+      if (S.setupDone && !S.demo) askConfirm('Load example data?', 'This replaces what you have now. Download a backup first if you want to keep it.', 'Load example data', load);
+      else load();
+      break;
     }
     case 'start-fresh': case 'reset': {
-      const msg = act === 'reset' ? 'Delete everything? This can\'t be undone. (Download a backup first if you want to keep it.)' : 'Clear the example data and set up your own?';
-      if (!confirm(msg)) break;
-      const keep = { ...S.settings }; S = freshState(); S.settings = keep; save(); UI.ob = null; UI.tab = 'home'; render(); window.scrollTo(0, 0); break;
+      const wipe = () => { const keep = { ...S.settings }; S = freshState(); S.settings = keep; save(); UI.ob = null; UI.tab = 'home'; render(); window.scrollTo(0, 0); };
+      if (act === 'reset') askConfirm('Delete everything?', 'This can\'t be undone. Download a backup first if you want to keep your data.', 'Delete everything', wipe);
+      else askConfirm('Set up your own?', 'This clears the example data so you can start with your own numbers.', 'Clear example data', wipe, false);
+      break;
     }
     // onboarding
     case 'ob-next': obNext(); break;
@@ -1483,9 +1494,11 @@ addEventListener('storage', (e) => { if (e.key === STORE_KEY) { S = loadState();
 
 render();
 
-if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-}
+try {
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+} catch (e) { /* not allowed here: the app still works, just without offline caching */ }
 </script>
 </body>
 </html>
