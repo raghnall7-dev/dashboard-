@@ -317,6 +317,14 @@ label.field { display: grid; gap: 6px; font-weight: 600; font-size: .9rem; }
 .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .setting:last-child { border-bottom: 0; }
 /* ============ v2: views, calendar, year, debts, limits ============ */
+.grid > *, .stack > *, .card { min-width: 0; }
+@media (max-width: 380px) {
+  .tile { padding: 10px 8px; }
+  .tile .v { font-size: 1rem; }
+  .tbl { font-size: .82rem; }
+  .tbl th, .tbl td { padding-left: 2px; padding-right: 2px; }
+  .hero .amount { font-size: 2.5rem; }
+}
 .seg.three { grid-template-columns: repeat(3, 1fr); }
 .view-seg { margin-bottom: 14px; }
 .cat-line { border: 0; background: none; width: 100%; text-align: left; padding: 9px 0; display: grid; gap: 6px; color: inherit; border-radius: 10px; }
@@ -1914,6 +1922,10 @@ document.addEventListener('change', (e) => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !sheetRoot.hidden) closeSheet();
+  // Enter on a category = pick it and save (fast keyboard entry on computers)
+  if (e.key === 'Enter' && UI.sheet && UI.sheet.kind === 'tx' && e.target.closest && e.target.closest('.cat-btn')) {
+    e.preventDefault(); e.target.closest('.cat-btn').click(); const sv = sheetRoot.querySelector('[data-act="tx-save"]'); if (sv) sv.click(); return;
+  }
   if (e.key === 'Enter' && UI.sheet && e.target.tagName === 'INPUT') {
     const map = { tx: 'tx-save', goal: 'goal-save', 'goal-add': 'ga-save', bill: 'bill-save', income: 'i-save', cat: 'c-save', debt: 'd-save', 'debt-pay': 'dp-save', limit: 'l-save' };
     const btn = sheetRoot.querySelector(`[data-act="${map[UI.sheet.kind]}"]`); if (btn) { e.preventDefault(); btn.click(); }
